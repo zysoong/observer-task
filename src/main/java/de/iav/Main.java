@@ -17,7 +17,10 @@ public class Main {
         timer.attachObserver(timerObserver_2);
         timer.attachObserver(timerObserver_3);
 
-        timer.start();
+        Thread t1 = new Thread(new StartTimer(timer));
+        t1.start();
+        Thread.sleep(5000);
+        timer.stop();
 
     }
 
