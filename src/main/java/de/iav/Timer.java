@@ -2,6 +2,7 @@ package de.iav;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -9,14 +10,14 @@ public class Timer implements Subject{
 
     private double time;
     private boolean stopFlag;
-    private Lock lock;
+    private Semaphore mutex;
     private List<Observer> observerList;
 
     public Timer(){
         this.time = 0.;
         this.observerList = new ArrayList<>();
         this.stopFlag = false;
-        this.lock = new ReentrantLock();
+        this.mutex = new Semaphore(1);
     }
 
     @Override
@@ -38,27 +39,36 @@ public class Timer implements Subject{
 
     public void start() throws InterruptedException {
 
-        this.lock.lock();
+        try {
 
-        while(true){
+            this.mutex.acquire();
 
-            if (this.stopFlag) {
-                break;
+            while (true) {
+
+                if (this.stopFlag) {
+                    break;
+                }
+
+                Thread.sleep(1000);
+                this.time += 1;
+                notifyObservers();
             }
 
-            Thread.sleep(1000);
-            this.time += 1;
-            notifyObservers();
+        } finally {
+            this.mutex.release();
         }
 
-        this.lock.unlock();
+
     }
 
     public void stop() throws InterruptedException {
-        //this.lock.lock();
-        this.time = 0;
-        notifyObservers();
-        this.stopFlag = true;
-        //this.lock.unlock();
+        try {
+            //this.mutex.acquire();
+            this.time = 0;
+            notifyObservers();
+            this.stopFlag = true;
+        } finally {
+            //this.mutex.release();
+        }
     }
 }

@@ -19,8 +19,11 @@ public class Main {
 
         Thread t1 = new Thread(new StartTimer(timer));
         t1.start();
+
         Thread.sleep(5000);
-        timer.stop();
+
+        Thread t2 = new Thread(new StopTimer(timer));
+        t2.start();
 
     }
 
